@@ -1,0 +1,49 @@
+# Order matters. This is ordered so that the slave prometheuses are installed before its masters
+# so that the prometheus federation doesn't produce down targets for the slaves that have not yet come up
+clusters:
+  - cluster_name: clus02
+    is_master: false
+    is_canary: true
+    pks_monitor_enabled: false
+    bosh_exporter_enabled: true
+    alertmanager_url: https://alertmanager.clus02.((foundation_domain))
+    endpoints: ((endpoints))
+    gmail_account: ((gmail_account))
+    prometheus_url: https://prometheus.clus02.((foundation_domain))
+    foundation: ((foundation))
+    foundation_domain: ((foundation_domain))
+    service_instance_id: ((service_instance_id))
+    alertmanager_hostname: alertmanager.clus02.((foundation_domain))ƒƒƒ
+    grafana_hostname: grafana.clus02.((foundation_domain))
+    prometheus_hostname: prometheus.clus02.((foundation_domain))
+  - cluster_name: clus01
+    is_master: true
+    is_canary: true
+    pks_monitor_enabled: true
+    bosh_exporter_enabled: true
+    alertmanager_url: https://alertmanager.clus01.((foundation_domain))
+    endpoints: ((endpoints))
+    gmail_account: ((gmail_account))
+    prometheus_url: https://prometheus.clus01.((foundation_domain))
+    foundation: ((foundation))
+    foundation_domain: ((foundation_domain))
+    federated_targets: ((federated_targets))
+    service_instance_id: ((service_instance_id))
+    alertmanager_hostname: alertmanager.clus01.((foundation_domain))
+    grafana_hostname: grafana.clus01.((foundation_domain))
+    prometheus_hostname: prometheus.clus01.((foundation_domain))
+  - cluster_name: clus03
+    is_master: false
+    is_canary: false
+    pks_monitor_enabled: false
+    bosh_exporter_enabled: true
+    alertmanager_url: https://alertmanager.clus03.((foundation_domain))
+    endpoints: ((endpoints))
+    gmail_account: ((gmail_account))
+    prometheus_url: https://prometheus.clus03.((foundation_domain))
+    foundation: ((foundation))
+    foundation_domain: ((foundation_domain))
+    service_instance_id: ((service_instance_id))
+    alertmanager_hostname: alertmanager.clus03.((foundation_domain))
+    grafana_hostname: grafana.clus03.((foundation_domain))
+    prometheus_hostname: prometheus.clus03.((foundation_domain))
