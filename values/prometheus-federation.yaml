@@ -123,6 +123,17 @@ additionalPrometheusRulesMap:
 
   recording-rules:
     groups:
+    - name: bosh_rules
+      interval: 15s
+      rules:
+      - record: "bosh:job_name:master:healthy"
+        expr: "sum by (bosh_job_name) (bosh_job_healthy{bosh_job_name=\"master\"})"
+        labels:
+          job: "prometheus-operator-bosh-exporter-bosh-exporter"
+      - record: "bosh:job_name:worker:healthy"
+        expr: "sum by (bosh_job_name) (bosh_job_healthy{bosh_job_name=\"worker\"})"
+        labels:
+          job: "prometheus-operator-bosh-exporter-bosh-exporter"
     - name: kube_api_rules
       interval: 15s
       rules:
