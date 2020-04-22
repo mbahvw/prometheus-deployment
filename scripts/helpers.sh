@@ -285,6 +285,52 @@ function helm_install() {
 		"${__BASEDIR}/charts/prometheus-operator"
 }
 
+function helm_template() {
+	cluster="${1:?"Cluster name is required"}"
+	namespace="${2:?"Namespace is required"}"
+	release="${3:?"Release is required"}"
+	bosh_exporter_enabled="${4:-"false"}"
+	pks_monitor_enabled="${5:-"false"}"
+
+	excluded_targets=()
+	is_cluster_canary=$(om interpolate -s \
+		--config "environments/${foundation}/config/config.yml" \
+		--vars-file "environments/${foundation}/vars/vars.yml" \
+		--vars-env VARS \
+		--path "/clusters/cluster_name=${cluster}/is_canary")
+
+	if [[ "${is_cluster_canary}" ]]; then
+		excluded_targets=("$(get_excluded_targets "${foundation}" "${cluster}" "${namespace}" "${release}" 2>/dev/null)")
+	fi
+
+	echo "excluded_targets: '${excluded_targets[*]}'"
+	foundation_domain=$(om interpolate -s \
+		--config "environments/${foundation}/config/config.yml" \
+		--vars-file "environments/${foundation}/vars/vars.yml" \
+		--vars-env VARS \
+		--path "/clusters/cluster_name=${cluster}/foundation_domain")
+	echo "clusterDomain: '${cluster}.${foundation_domain}'"
+
+	rm -rf "/tmp/${cluster}"
+	mkdir "/tmp/${cluster}"
+
+	helm template "${release}" \
+		--namespace "${namespace}" \
+		--values /tmp/overrides.yaml \
+		--set bosh-exporter.boshExporter.enabled="${bosh_exporter_enabled}" \
+		--set pks-monitor.pksMonitor.enabled="${pks_monitor_enabled}" \
+		--set global.rbac.pspEnabled=false \
+		--set grafana.adminPassword=admin \
+		--set grafana.testFramework.enabled=true \
+		--set ingress-gateway.istio.enabled=true \
+		--set ingress-gateway.ingress.enabled=false \
+		--set ingress-gateway.clusterDomain="${cluster}.${foundation_domain}" \
+		--set smoke-tests.excludedTargets="${excluded_targets[*]}" \
+		--set kubeTargetVersionOverride="$(kubectl version --short | grep -i server | awk '{print $3}' |  cut -c2-1000)" \
+		--output-dir "/tmp/${cluster}" \
+		"${__BASEDIR}/charts/prometheus-operator"
+}
+
 function create_namespace() {
 	cluster="${1:?"Cluster name is required"}"
 	namespace="${2:?"Namespace is required"}"
@@ -376,6 +422,33 @@ function install_cluster() {
 
 	remove_dashboards
 }
+
+function template_cluster() {
+	foundation="${1:?"Foundation name is required"}"
+	cluster="${2:?"Cluster name is required"}"
+	namespace="${3:?"Namespace is required"}"
+	release="${4:?"Release is required"}"
+
+	# create_namespace "${cluster}" "${namespace}"
+
+	# switch_namespace "${cluster}" "${namespace}"
+
+	# create_storage_class
+
+	# create_secrets "${foundation}" "${cluster}" "${namespace}"
+
+	interpolate "${foundation}" "${cluster}" "${namespace}"
+
+	copy_dashboards "${foundation}" "${cluster}"
+
+	bosh_exporter_enabled=$(get_config_value "${foundation}" "/clusters/cluster_name=${cluster}/bosh_exporter_enabled")
+	pks_monitor_enabled=$(get_config_value "${foundation}" "/clusters/cluster_name=${cluster}/pks_monitor_enabled")
+
+	helm_template "${cluster}" "${namespace}" "${release}" "${bosh_exporter_enabled}" "${pks_monitor_enabled}"
+
+	remove_dashboards
+}
+
 
 __PWD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 __BASEDIR="${__PWD}/.."
