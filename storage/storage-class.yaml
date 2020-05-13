@@ -3,6 +3,7 @@ apiVersion: storage.k8s.io/v1
 metadata:
   name: thin-disk
 provisioner: kubernetes.io/vsphere-volume
+reclaimPolicy: Retain
 parameters:
   datastore: ((datastore))
   diskformat: thin
