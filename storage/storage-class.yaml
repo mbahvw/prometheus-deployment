@@ -5,6 +5,6 @@ metadata:
 provisioner: kubernetes.io/vsphere-volume
 reclaimPolicy: Retain
 parameters:
-  datastore: LUN01
+  datastore: ((datastore))
   diskformat: thin
   fstype: ext4

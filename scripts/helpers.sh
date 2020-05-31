@@ -5,6 +5,11 @@ function credhub_login() {
 	local credhub_client="${2}"
 	local credhub_secret="${3}"
 	local credhub_ca_cert="${4}"
+	local credhub_proxy="${5}"
+
+	if [[ -n $credhub_proxy ]]; then
+		export CREDHUB_PROXY="$credhub_proxy"
+	fi
 
 	echo "Logging in to credhub (${credhub_server})..."
 	credhub login \
@@ -17,7 +22,7 @@ function credhub_login() {
 function create_etcd_client_secret() {
 	deployment=${1:?"bosh deployment name for service instance of the cluster"}
 
-	credhub_login "${CREDHUB_SERVER}" "${CREDHUB_CLIENT}" "${CREDHUB_SECRET}" "${CREDHUB_CA_CERT}"
+	credhub_login "${CREDHUB_SERVER}" "${CREDHUB_CLIENT}" "${CREDHUB_SECRET}" "${CREDHUB_CA_CERT}" "${CREDHUB_PROXY}"
 
 	credhub get -n "/p-bosh/${deployment}/tls-etcdctl-2018-2" -k ca > etcd-client-ca.crt
 	credhub get -n "/p-bosh/${deployment}/tls-etcdctl-2018-2" -k certificate > etcd-client.crt
@@ -242,6 +247,8 @@ function helm_install() {
 	release="${3:?"Release is required"}"
 	bosh_exporter_enabled="${4:-"false"}"
 	pks_monitor_enabled="${5:-"false"}"
+	istio_enabled="${6:-"false"}"
+	ingress_enabled="${7:-"false"}"
 
 	excluded_targets=()
 	is_cluster_canary=$(om interpolate -s \
@@ -270,8 +277,8 @@ function helm_install() {
 		--set global.rbac.pspEnabled=false \
 		--set grafana.adminPassword=admin \
 		--set grafana.testFramework.enabled=true \
-		--set ingress-gateway.istio.enabled=true \
-		--set ingress-gateway.ingress.enabled=false \
+		--set ingress-gateway.istio.enabled="${istio_enabled}" \
+		--set ingress-gateway.ingress.enabled="${ingress_enabled}" \
 		--set ingress-gateway.clusterDomain="${cluster}.${foundation_domain}" \
 		--set smoke-tests.excludedTargets="${excluded_targets[*]}" \
 		--set kubeTargetVersionOverride="$(kubectl version --short | grep -i server | awk '{print $3}' |  cut -c2-1000)" \
@@ -343,8 +350,13 @@ function switch_namespace() {
 }
 
 function create_storage_class() {
+	om interpolate \
+		--config "storage/storage-class.yaml" \
+		--vars-file "environments/${foundation}/vars/vars.yml" \
+		> /tmp/storage-class.yaml
+
 	kubectl delete storageclass thin-disk --ignore-not-found
-	kubectl create -f storage/storage-class.yaml
+	kubectl create -f /tmp/storage-class.yaml
 }
 
 function copy_dashboards() {
@@ -403,8 +415,10 @@ function install_cluster() {
 
 	bosh_exporter_enabled=$(get_config_value "${foundation}" "/clusters/cluster_name=${cluster}/bosh_exporter_enabled")
 	pks_monitor_enabled=$(get_config_value "${foundation}" "/clusters/cluster_name=${cluster}/pks_monitor_enabled")
+	istio_enabled=$(get_config_value "${foundation}" "/clusters/cluster_name=${cluster}/istio_enabled")
+	ingress_enabled=$(get_config_value "${foundation}" "/clusters/cluster_name=${cluster}/ingress_enabled")
 
-	helm_install "${cluster}" "${namespace}" "${release}" "${bosh_exporter_enabled}" "${pks_monitor_enabled}"
+	helm_install "${cluster}" "${namespace}" "${release}" "${bosh_exporter_enabled}" "${pks_monitor_enabled}" "${istio_enabled}" "${ingress_enabled}"
 
 	remove_dashboards
 }
