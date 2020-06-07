@@ -18,7 +18,7 @@ set -o pipefail
 foundation="${1:-$FOUNDATION}"
 namespace="${2:-monitoring}"
 release="${3:-prometheus-operator}"
-dryrun="${4:-$DRYRUN}"
+dryrun="${4:-false}"
 
 if [ "${1}" == "-h" ] || [ "${1}" == "help" ] || [ "${1}" == "--help" ]; then
   usage
@@ -45,7 +45,9 @@ source "${__DIR}/scripts/helpers.sh"
 clusters="$(pks clusters --json | jq -r 'sort_by(.name) | .[] | select(.last_action_state=="succeeded") | .name')"
 for cluster in ${clusters}; do
   printf "Installing %s into %s\n" "${release}" "${cluster}"
-  if [ ${dryrun} ]; then
+  if ${dryrun}
+  then
+  #if [ ${dryrun} ]; then
      # body
      echo "** dry run **"
      echo "templating to /tmp/${cluster}"
