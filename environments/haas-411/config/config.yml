@@ -1,0 +1,55 @@
+# Order matters. This is ordered so that the slave prometheuses are installed before its masters
+# so that the prometheus federation doesn't produce down targets for the slaves that have not yet come up
+clusters:
+  - cluster_name: cluster2
+    is_master: false
+    is_canary: true
+    pks_monitor_enabled: false
+    bosh_exporter_enabled: true
+    istio_enabled: true
+    ingress_enabled: false
+    alertmanager_url: https://alertmanager.cluster02.((foundation_domain))
+    endpoints: ((endpoints))
+    gmail_account: pupimvictor@gmail.com
+    prometheus_url: https://prometheus.cluster02.((foundation_domain))
+    foundation: ((foundation))
+    foundation_domain: ((foundation_domain))
+    service_instance_id: ((service_instance_id))
+    alertmanager_hostname: alertmanager.cluster02.((foundation_domain))
+    grafana_hostname: grafana.cluster02.((foundation_domain))
+    prometheus_hostname: prometheus.cluster02.((foundation_domain))
+  - cluster_name: cluster1
+    is_master: true
+    is_canary: true
+    pks_monitor_enabled: true
+    bosh_exporter_enabled: true
+    istio_enabled: true
+    ingress_enabled: false
+    alertmanager_url: https://alertmanager.cluster01.((foundation_domain))
+    endpoints: ((endpoints))
+    gmail_account: pupimvictor@gmail.com
+    prometheus_url: https://prometheus.cluster01.((foundation_domain))
+    foundation: ((foundation))
+    foundation_domain: ((foundation_domain))
+    federated_targets: ((federated_targets))
+    service_instance_id: ((service_instance_id))
+    alertmanager_hostname: alertmanager.cluster01.((foundation_domain))
+    grafana_hostname: grafana.cluster01.((foundation_domain))
+    prometheus_hostname: prometheus.cluster01.((foundation_domain))
+  - cluster_name: cluster3
+    is_master: false
+    is_canary: false
+    pks_monitor_enabled: false
+    bosh_exporter_enabled: true
+    istio_enabled: true
+    ingress_enabled: false
+    alertmanager_url: https://alertmanager.cluster03.((foundation_domain))
+    endpoints: ((endpoints))
+    gmail_account: pupimvictor@gmail.com
+    prometheus_url: https://prometheus.cluster03.((foundation_domain))
+    foundation: ((foundation))
+    foundation_domain: ((foundation_domain))
+    service_instance_id: ((service_instance_id))
+    alertmanager_hostname: alertmanager.cluster03.((foundation_domain))
+    grafana_hostname: grafana.cluster03.((foundation_domain))
+    prometheus_hostname: prometheus.cluster03.((foundation_domain))
