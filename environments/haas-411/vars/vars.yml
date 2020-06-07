@@ -1,7 +1,7 @@
-foundation: haas-455
-foundation_domain: haas-455.pez.pivotal.io
+foundation: haas-411
+foundation_domain: haas-411.pez.pivotal.io
 harbor_project: prometheus
-docker_registry: harbor.run.haas-455.pez.pivotal.io
+docker_registry: harbor.run.haas-411.pez.pivotal.io
 harbor_registry: ((docker_registry))/((harbor_project))
 gmail_account: pupimvictor@gmail.com
 datastore: LUN01

@@ -1,5 +1,11 @@
 #!/bin/bash -e
 
+export OM_TARGET="opsmgr-02.${PKS_SUBDOMAIN_NAME}.${PKS_DOMAIN_NAME}"
+export OM_USERNAME="${OPSMAN_USER}"
+export OM_PASSWORD="${OPSMAN_PASSWORD}"
+export OM_SKIP_SSL_VALIDATION=true
+
+
 CREDS=$(om -t "$OM_TARGET" --skip-ssl-validation curl --silent \
      -p /api/v0/deployed/director/credentials/bosh_commandline_credentials | \
   jq -r .credential | sed 's/bosh //g')
