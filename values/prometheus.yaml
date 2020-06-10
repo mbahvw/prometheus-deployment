@@ -29,7 +29,7 @@ prometheus:
           accessModes: ["ReadWriteOnce"]
           resources:
             requests:
-              storage: 5Gi
+              storage: 15Gi
 
     additionalScrapeConfigs:
     - job_name: "kubeEtcd-((cluster_name))"

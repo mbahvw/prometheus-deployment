@@ -64,6 +64,11 @@ prometheus:
         target_label: __address__
         replacement: '${1}:2379'
 
+    - job_name: "concourse"
+      static_configs:
+        - targets:
+          - '172.16.2.15:9090'
+
 additionalPrometheusRulesMap:
   alert-rules:
     groups:
